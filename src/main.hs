@@ -1,13 +1,19 @@
 module Main where
-   import Tokenizer
+   --import Tokenizer
    import Data.Char
    import Data.Map
    import Control.Monad.State
    import Data.Maybe
+   import StateEvalAndParse
 
    main :: IO ()
    main = do
-      --filePath <- getLine
+      let evaluation = eval exp1
+      print $ runState evaluation []
+
+
+   exp1 = Add (N 1) (Sub (N 3) (N 2))
+{-}
       fileContent <- readFile "src/expression.txt"--filePath
       let ts = tokenize $ stripAllWhitespace fileContent
       let pst = ParsSt {tokens = ts, variables = empty}
@@ -23,7 +29,7 @@ module Main where
       --print val
       otherVal <- simpleEval newPfo
       return $ val + otherVal
-      
+
    consumeToken :: ParseInfo -> (Int, ParseInfo)
    consumeToken pst = let currToken = head $ tokens pst in
       case currToken of
@@ -72,5 +78,5 @@ module Main where
          {  tokens   :: [Token],
             variables :: Map String Int} deriving (Show)
 
-   type ParseState = State ParseInfo
+   type ParseState = State ParseInfo-}
 
