@@ -9,24 +9,35 @@ data Expr = Var Char
           | Assign Char Expr
           deriving Show
 
-parse :: String -> (Expr,String)
+type ParseState = State String
 
-parse (ch:chs) 
-  | isAlpha(ch) = ((Var ch),chs)
-  | isDigit(ch) = (N (fromEnum ch - fromEnum '0'), chs)
-  | ch=='(' = (apply op, restFinal)
-  | ch=='<' = (Assign v e, restFinal2)
-      where
-         (e1,rest1) = parse(chs)
-         (op:rest2) = rest1
-         (e2,rest3) = parse(rest2)
-         (')':restFinal) = rest3
-         apply '+' = Add e1 e2
-         apply '-' = Sub e1 e2
-         (v:':':rest4) = chs
-         (e,restFinal2) = parse(rest4)
+parse :: String -> ParseState Expr
+parse (ch:chs)
+  | isAlpha(ch) = do
+    put chs
+    return (Var ch)
+  | isDigit(ch) = do
+    put chs
+    return (N (fromEnum ch - fromEnum '0'))
+  | ch == '(' = do
+    e1 <- parse(chs)
+    rest1 <- get
+    let (op:rest2) = rest1
+    e2 <- parse(rest2)
+    rest3 <- get
+    let (')':restFinal) = rest3
+    put restFinal
+    return $ apply op e1 e2
+  | ch =='<' = do
+    let (v:':':rest) = chs
+    e <- parse(rest)
+    restFinal <- get
+    put restFinal
+    return (Assign v e)
+      where apply '+' = Add
+            apply '-' = Sub
 
-(ex1,_) = parse("(<x:2+(3-x))")
+prsStr = "(<x:2+(3-x))"
 
 env1 = []
 
