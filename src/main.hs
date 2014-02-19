@@ -8,11 +8,16 @@ module Main where
 
    main :: IO ()
    main = do
-      let evaluation = eval exp1
-      print $ runState evaluation []
+      fileContent <- readFile "src/expression.txt"
+      let parsed = evalState (parse (stripAllWhitespace fileContent)) ""
+      let evaluation = eval parsed
+      print $ evalState evaluation []
 
-
-   exp1 = Add (N 1) (Sub (N 3) (N 2))
+   stripAllWhitespace :: String -> String
+   stripAllWhitespace [] = []
+   stripAllWhitespace (c : str) = if isSeparator c || c == '\n'
+                                  then stripAllWhitespace str
+                                  else c : (stripAllWhitespace str) 
 {-}
       fileContent <- readFile "src/expression.txt"--filePath
       let ts = tokenize $ stripAllWhitespace fileContent
@@ -64,16 +69,6 @@ module Main where
             rst = tail $ tokens pst
             nxtToken = head rst-}
              
-      
-   stripAllWhitespace :: String -> String
-   stripAllWhitespace [] = []
-   stripAllWhitespace (c : str) = if isSeparator c || c == '\n'
-                                  then stripAllWhitespace str
-                                  else c : (stripAllWhitespace str) 
-
-
-
-
    data ParseInfo = ParsSt
          {  tokens   :: [Token],
             variables :: Map String Int} deriving (Show)
