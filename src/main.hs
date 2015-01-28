@@ -5,13 +5,15 @@ module Main where
    import Control.Monad.State
    import Data.Maybe
    import StateEvalAndParse
+   import PrettyPrinter
 
    main :: IO ()
    main = do
-      fileContent <- readFile "src/expression.txt"
+      fileContent <- readFile "src/prettyExpression.txt"
       let parsed = evalState (parse (stripAllWhitespace fileContent)) ""
-      let evaluation = eval parsed
-      print $ evalState evaluation []
+      writeFile "src/out.txt" $ prettyPrependPrint $ Storage {iState=0, expr=parsed}
+      --let evaluation = eval parsed
+      --print $ evalState evaluation []
 
    stripAllWhitespace :: String -> String
    stripAllWhitespace [] = []
