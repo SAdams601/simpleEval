@@ -11,7 +11,12 @@ module Main where
    main = do
       fileContent <- readFile "src/prettyExpression.txt"
       let parsed = evalState (parse (stripAllWhitespace fileContent)) ""
-      writeFile "src/out.txt" $ prettyPrependPrint $ Storage {iState=0, expr=parsed}
+      let pretty = statePrettyPrint parsed
+      writeFile "src/out.txt" $ evalState pretty 0
+      out <- readFile "src/out.txt"
+      let parsed2 = evalState (parse (stripAllWhitespace out)) ""
+      let e = eval parsed2
+      print $ evalState e []
       --let evaluation = eval parsed
       --print $ evalState evaluation []
 
