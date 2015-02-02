@@ -1,7 +1,7 @@
 module StateEvalAndParse where
 import Data.Char
 import Control.Monad.State
-
+import Debug.Trace
 data Expr = Var Char
           | N Int
           | Add Expr Expr
@@ -12,6 +12,7 @@ data Expr = Var Char
 type ParseState = State String
 
 parse :: String -> ParseState Expr
+--parse (ch:chs) | trace ("parse, ch: " ++ (show ch) ++ " chs: " ++ chs) False = undefined
 parse (ch:chs)
   | isAlpha(ch) = do
     put chs
@@ -37,7 +38,7 @@ parse (ch:chs)
       where apply '+' = Add
             apply '-' = Sub
 
-prsStr = "(<x:2+(3-x))"
+prsStr = "(((<x:5+2)-4)+(<y:2+x))"
 
 env1 = []
 

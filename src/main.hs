@@ -6,13 +6,14 @@ module Main where
    import Data.Maybe
    import StateEvalAndParse
    import PrettyPrinter
-
+   import DListPrettyPrinter
+   import DList
    main :: IO ()
    main = do
       fileContent <- readFile "src/prettyExpression.txt"
       let parsed = evalState (parse (stripAllWhitespace fileContent)) ""
-      let pretty = statePrettyPrint parsed
-      writeFile "src/out.txt" $ evalState pretty 0
+      let pretty = DListPrettyPrinter.statePrettyPrint parsed
+      writeFile "src/out.txt" $ DList.toList (evalState pretty 0)
       out <- readFile "src/out.txt"
       let parsed2 = evalState (parse (stripAllWhitespace out)) ""
       let e = eval parsed2

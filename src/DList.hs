@@ -25,9 +25,9 @@ append :: DList a -> DList a -> DList a
 append xs ys = DL (unDL xs . unDL ys)
 {-- /snippet append --}
 
-appendMany :: [DList a] -> DList a
+appendMany :: [[a]] -> DList a
 appendMany [] = empty
-appendMany (x:xs) = append x $ appendMany xs
+appendMany (x:xs) = append (fromList x) $ appendMany xs
 
 {-- snippet appendP --}
 append' :: DList a -> DList a -> DList a
