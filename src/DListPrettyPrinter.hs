@@ -2,6 +2,7 @@ module DListPrettyPrinter where
 import StateEvalAndParse
 import Control.Monad.State
 import DList
+import MaybeEvalAndParse
 
 data Storage = Storage {
   iState :: Int,
@@ -25,6 +26,10 @@ statePrettyPrint (Var c) = do
 statePrettyPrint (N n) = do
   i <- get
   return $ append (fromList (getIndentLevel i)) (fromList $ show n)
+statePrettyPrint (Neg e) = do
+  i <- get
+  prettyExpr <- statePrettyPrint e
+  return $ append (fromList (getIndentLevel i)) (append (fromList "-") prettyExpr)
 statePrettyPrint (Assign c e) = do
   i <- get
   let iLevel = findIndent i e
@@ -53,6 +58,15 @@ statePrettyPrint (Sub e1 e2) = do
       prettyE2 = toList se2
   put i
   return $ appendMany [(getIndentLevel i), "(\n", prettyE1, "\n", (getIndentLevel (i+1)), "-\n", prettyE2, ")"]
+statePrettyPrint (Div e1 e2) = do
+  i <- get
+  put (i+1)
+  se1 <- statePrettyPrint e1
+  se2 <- statePrettyPrint e2
+  let prettyE1 = toList se1
+      prettyE2 = toList se2
+  put i
+  return $ appendMany [(getIndentLevel i), "(\n", prettyE1, "\n", (getIndentLevel (i+1)), "/\n", prettyE2, ")"]
 
 prettyPrint :: Storage -> DList Char
 prettyPrint Storage {iState=i, expr=(Var c)} = append (fromList (getIndentLevel i)) (fromList [c])

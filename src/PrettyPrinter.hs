@@ -1,6 +1,7 @@
 module PrettyPrinter where
 import StateEvalAndParse
 import Control.Monad.State
+import MaybeEvalAndParse
 
 data Storage = Storage {
   iState :: Int,
@@ -48,6 +49,13 @@ statePrettyPrint (Sub e1 e2) = do
   prettyE2 <- statePrettyPrint e2
   put i
   return $ (getIndentLevel i) ++ "(\n" ++ prettyE1 ++ "\n" ++ (getIndentLevel (i+1))  ++ "-\n" ++ prettyE2 ++ ")"
+statePrettyPrint (Div e1 e2) = do
+  i <- get
+  put (i+1)
+  prettyE1 <- statePrettyPrint e1
+  prettyE2 <- statePrettyPrint e2
+  put i
+  return $ (getIndentLevel i) ++ "(\n" ++ prettyE1 ++ "\n" ++ (getIndentLevel (i+1))  ++ "/\n" ++ prettyE2 ++ ")"
 
 prettyPrint :: Storage -> String
 prettyPrint Storage {iState=i, expr=(Var c)} = (getIndentLevel i) ++ [c]

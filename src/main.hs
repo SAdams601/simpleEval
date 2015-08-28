@@ -4,19 +4,20 @@ module Main where
    import Data.Map
    import Control.Monad.State
    import Data.Maybe
-   import StateEvalAndParse
+--   import StateEvalAndParse
+   import MaybeEvalAndParse 
    import PrettyPrinter
    import DListPrettyPrinter
    import DList
    main :: IO ()
    main = do
-      fileContent <- readFile "src/prettyExpression.txt"
+      fileContent <- readFile "src/expression.txt"
       let parsed = evalState (parse (stripAllWhitespace fileContent)) ""
       let pretty = DListPrettyPrinter.statePrettyPrint parsed
       writeFile "src/out.txt" $ DList.toList (evalState pretty 0)
       out <- readFile "src/out.txt"
       let parsed2 = evalState (parse (stripAllWhitespace out)) ""
-      let e = eval parsed2
+      let e = evalM parsed2
       print $ evalState e []
       --let evaluation = eval parsed
       --print $ evalState evaluation []

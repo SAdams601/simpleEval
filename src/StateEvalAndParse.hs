@@ -2,14 +2,7 @@ module StateEvalAndParse where
 import Data.Char
 import Control.Monad.State
 import Debug.Trace
-data Expr = Var Char
-          | N Int
-          | Add Expr Expr
-          | Sub Expr Expr
-          | Assign Char Expr
-          deriving Show
-
-type ParseState = State String
+import MaybeEvalAndParse hiding (parse,eval)
 
 parse :: String -> ParseState Expr
 --parse (ch:chs) | trace ("parse, ch: " ++ (show ch) ++ " chs: " ++ chs) False = undefined
@@ -41,10 +34,6 @@ parse (ch:chs)
 prsStr = "(((<x:5+2)-4)+(<y:2+x))"
 
 env1 = []
-
-type Env = [(Char,Int)]
-
-type EvalSt = State Env
 
 eval :: Expr -> EvalSt Int
 eval (Var v) = do 
