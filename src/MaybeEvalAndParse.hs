@@ -1,3 +1,5 @@
+{-# LANGUAGE Rank2Types,LiberalTypeSynonyms,ImpredicativeTypes,FlexibleContexts #-}
+
 module MaybeEvalAndParse where
 import Data.Char
 import Control.Monad.State
@@ -49,14 +51,16 @@ divStr = "(4/2)"
 
 env1 = []
 
-type Env = [(Char,Int)]
+type Env a = [(Char, a)]
 
-type EvalSt = State Env
+type EvalSt a = State (Env a) a
 
-eval :: Expr -> EvalSt (Int)
+
+eval :: Expr -> EvalSt Int
 eval (Var v) = do 
   env <- get
-  return (head [val | (x,val) <- env, x==v])
+  let res = (head [val | (x,val) <- env, x==v]) 
+  return res
 
 eval (N n) = return n
 eval (Neg e) = do
@@ -81,19 +85,16 @@ eval (Assign x e) = do
   env <- get
   v <- eval e
   put $ (x,v):env
-  return v 
+  return v
 
-evalM :: Expr -> EvalSt (Maybe Int)
+evalM :: (Monad m, Show (m Int)) => Expr -> EvalSt (m Int)
 evalM (Var v) = do
   env <- get
-  return $ Just (head [val | (x,val) <- env, x==v])
+  return (head [val | (x,val) <- env, x==v])
 
-evalM (N n) = return (Just n)
+evalM (N n) = return (return n)
 
 evalM (Neg e) = 
-  {-do
-  mv <- evalM e
-  return $ mv >>= (\v -> return (-v))-}
   evalM e >>= (\mv -> return $ mv >>= (\v -> return (-v)))
 
 evalM (Add e1 e2) = 
@@ -101,25 +102,38 @@ evalM (Add e1 e2) =
     evalM e2 >>= (\mv2 ->
       return $ mv1 >>= (\v1 -> mv2 >>= (\v2 -> return (v1 + v2)))))
 
-evalM (Sub e1 e2) = do
+evalM (Sub e1 e2) =
   evalM e1 >>= (\mv1 ->
     evalM e2 >>= (\mv2 ->
       return $ mv1 >>= (\v1 -> mv2 >>= (\v2 -> return (v1 - v2)))))
 
-evalM (Div e1 e2) = do
+evalM (Div e1 e2) =
   evalM e1 >>= (\mv1 ->
     evalM e2 >>= (\mv2 ->
       return $ mv1 >>= 
         (\v1 -> mv2 >>= 
           (\v2 -> case v2 of
-                    0 -> Nothing
+            --changed Nothing to fail here
+                    0 -> fail "Divide by zero"
                     otherwise -> return (v1 `div` v2)))))
-
---evalM (Add e1 e2) =  evalM e1 >>= (\v1 -> evalM e2 >>= (\v2 -> return (v1 + v2))) 
+evalM (Assign x e) = do
+ env <- get
+ evalM e >>= (\mv -> put ((x,mv):env) >> return mv)
 
 {- 
 
-Same code as above just using do notation
+Same code as above just using do notation. I've kept the bind calls to handle the nothing case more smoothly.
+Otherwise the Neg, Add, and Sub cases would need the case statements much like the following:
+
+case mv of
+  Nothing -> Nothing
+  Just v -> return (-v)
+
+Sub and Add would need nested cases to handle both mv1 and mv2.
+
+evalM (Neg e) = 
+  mv <- evalM
+  return $ mv >>= (\v -> return (-v))
 
 evalM (Add e1 e2) = do
   mv1 <- evalM e1
@@ -140,9 +154,16 @@ evalM (Div e1 e2) = do
         0 -> Nothing
         otherwise -> return (v1 `div` v2)))
 
+Neg case written for MonadPlus
+
+evalM (Div e1 e2) = do
+  mv1 <- evalM e1
+  mv2 <- evalM e2
+  return $ mv1 >>= 
+    (\v1 -> mv2 >>= 
+      (\v2 -> case v2 of
+        0 -> mzero
+        otherwise -> return (v1 `div` v2)))
+
 -}
-evalM (Assign x e) = do
-  env <- get
-  (Just v) <- evalM e
-  put $ (x,v):env
-  return (Just v) 
+

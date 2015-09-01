@@ -34,7 +34,7 @@ parse (ch:chs)
 prsStr = "(((<x:5+2)-4)+(<y:2+x))"
 
 env1 = []
-
+{-
 eval :: Expr -> EvalSt Int
 eval (Var v) = do 
   env <- get
@@ -57,4 +57,5 @@ eval (Assign x e) = do
   v <- eval e
   put $ (x,v):env
   return v 
+  -}
 
